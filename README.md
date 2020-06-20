@@ -18,3 +18,15 @@ cd /donation/network
 cd /donation/network
 ./teardown.sh
 ```
+
+## Start WebServer
+```bash
+cd /donation/prototype
+node enrollAdmin
+node registerUser
+node server
+
+or
+
+./startServer.sh
+```

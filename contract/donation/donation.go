@@ -6,122 +6,292 @@ import (
 	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	sc "github.com/hyperledger/fabric/protos/peer"
+	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
+// SmartContract example simple Chaincode implementation
 type SmartContract struct {
 }
 
+// PNInfo PN infomations
 type PNInfo struct {
-	ID int `json:"id"`
-	RegistTime string `json:"registtime"`
+	ID           int    `json:"id"`
+	RegistTime   string `json:"registtime"`
 	RegistNumber string `json:"registnumbder"`
-
 }
 
-type PNP struct{
-	ID int `json:"id"`
-	Name string `json:"name"`
-	Birthday string `json:"birthday"`
-	Address string `json:"address"`
-	PhoneNumber string `json:"phoneNumber"`
-	PNInfomation PNInfo  `json:"pninfo"`
+// PNP PN person
+type PNP struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Birthday     string `json:"birthday"`
+	Address      string `json:"address"`
+	PhoneNumber  string `json:"phoneNumber"`
+	PNInfomation PNInfo `json:"pninfo"`
 }
 
-func (s *SmartContract) Init(APIstub shim.ChaincodeStubInterface) sc.Response {
-	return shim.Success(nil)
+// Invoke - Our entry point for Invocations
+// ========================================
+func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+	function, args := stub.GetFunctionAndParameters()
+	fmt.Println("invoke is running " + function)
+	// Handle different functions
+	switch function {
+	case "addPN":
+		return s.addPN(stub, args)
+	case "initMarble":
+		//create a new marble
+		return s.initMarble(stub, args)
+	case "readMarble":
+		//read a marble
+		return s.readMarble(stub, args)
+	case "readMarblePrivateDetails":
+		//read a marble private details
+		return s.readMarblePrivateDetails(stub, args)
+	case "transferMarble":
+		//change owner of a specific marble
+		return s.transferMarble(stub, args)
+	default:
+		//error
+		fmt.Println("invoke did not find func: " + function)
+		return shim.Error("Received unknown function invocation")
+	}
 }
 
-func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response {
+func (s *SmartContract) addPN(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	function, args := APIstub.GetFunctionAndParameters()
-
-	if function == "addPN" {
-		return s.addPN(APIstub, args)
-	} 
-	// else if function == "addRating" {
-	// 	return s.addRating(APIstub, args)
-	// } else if function == "readRating" {
-	// 	return s.readRating(APIstub, args)
-	// } 
-	return shim.Error("Invalid Smart Contract function name.")
-}
- 
-func (s *SmartContract) addPN(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-
-	if len(args)  != 8 {
+	if len(args) != 8 {
 		return shim.Error("fail!")
 	}
-	iid,_ := strconv.Atoi(args[5])
+	iid, _ := strconv.Atoi(args[5])
 	iop, _ := strconv.Atoi(args[0])
 	var Info = PNInfo{
 		ID: iid, RegistTime: args[6], RegistNumber: args[7],
 	}
 	var PN = PNP{
-		ID: iop,
-		Name: args[1],
-		Birthday: args[2],
-		Address: args[3],
-		PhoneNumber: args[4],
+		ID:           iop,
+		Name:         args[1],
+		Birthday:     args[2],
+		Address:      args[3],
+		PhoneNumber:  args[4],
 		PNInfomation: Info,
 	}
 	PNAsBytes, _ := json.Marshal(PN)
-	APIstub.PutState(args[0], PNAsBytes)
+	stub.PutState(args[0], PNAsBytes)
 
 	return shim.Success(nil)
 }
 
-// func (s *SmartContract) addRating(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-// 	if len(args) != 3 {
-// 		return shim.Error("Incorrect number of arguments. Expecting 3")
-// 	}
-// 	// getState User 
-// 	userAsBytes, err := APIstub.GetState(args[0])
-// 	if err != nil{
-// 		jsonResp := "\"Error\":\"Failed to get state for "+ args[0]+"\"}"
-// 		return shim.Error(jsonResp)
-// 	} else if userAsBytes == nil{ // no State! error
-// 		jsonResp := "\"Error\":\"User does not exist: "+ args[0]+"\"}"
-// 		return shim.Error(jsonResp)
-// 	}
-// 	// state ok
-// 	user := UserRating{}
-// 	err = json.Unmarshal(userAsBytes, &user)
-// 	if err != nil {
-// 		return shim.Error(err.Error())
-// 	}
-// 	// create rate structure
-// 	newRate, _ := strconv.ParseFloat(args[2],64) 
-// 	var Rate = Rate{ProjectTitle: args[1], Score: newRate}
+type marble struct {
+	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
+	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
+	Color      string `json:"color"`
+	Size       int    `json:"size"`
+	Owner      string `json:"owner"`
+}
 
-// 	rateCount := float64(len(user.Rates))
+type marblePrivateDetails struct {
+	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
+	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
+	Price      int    `json:"price"`
+}
 
-// 	user.Rates=append(user.Rates,Rate)
-
-// 	user.Average = (rateCount*user.Average+newRate)/(rateCount+1)
-// 	// update to User World state
-// 	userAsBytes, err = json.Marshal(user);
-
-// 	APIstub.PutState(args[0], userAsBytes)
-
-// 	return shim.Success([]byte("rating is updated"))
-// }
-
-// func (s *SmartContract) readRating(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-
-// 	if len(args) != 1 {
-// 		return shim.Error("Incorrect number of arguments. Expecting 1")
-// 	}
-
-// 	UserAsBytes, _ := APIstub.GetState(args[0])
-// 	return shim.Success(UserAsBytes)
-// }
-
+// ===================================================================================
+// Main
+// ===================================================================================
 func main() {
-
-	// Create a new Smart Contract
 	err := shim.Start(new(SmartContract))
 	if err != nil {
-		fmt.Printf("Error creating new Smart Contract: %s", err)
+		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
+}
+
+// Init initializes chaincode
+// ===========================
+func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	return shim.Success(nil)
+}
+
+// ============================================================
+// initMarble - create a new marble, store into chaincode state
+// ============================================================
+func (s *SmartContract) initMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var err error
+
+	type marbleTransientInput struct {
+		Name  string `json:"name"` //the fieldtags are needed to keep case from bouncing around
+		Color string `json:"color"`
+		Size  int    `json:"size"`
+		Owner string `json:"owner"`
+		Price int    `json:"price"`
+	}
+	// ==== Input sanitation ====
+	fmt.Println("- start init marble")
+	if len(args) != 0 {
+		return shim.Error("Incorrect number of arguments. Private marble data must be passed in transient map.")
+	}
+	transMap, err := stub.GetTransient()
+	if err != nil {
+		return shim.Error("Error getting transient: " + err.Error())
+	}
+	if _, ok := transMap["marble"]; !ok {
+		return shim.Error("marble must be a key in the transient map")
+	}
+	if len(transMap["marble"]) == 0 {
+		return shim.Error("marble value in the transient map must be a non-empty JSON string")
+	}
+	var marbleInput marbleTransientInput
+	err = json.Unmarshal(transMap["marble"], &marbleInput)
+	if err != nil {
+		return shim.Error("Failed to decode JSON of: " + string(transMap["marble"]))
+	}
+
+	if len(marbleInput.Name) == 0 {
+		return shim.Error("name field must be a non-empty string")
+	}
+	if len(marbleInput.Color) == 0 {
+		return shim.Error("color field must be a non-empty string")
+	}
+	if marbleInput.Size <= 0 {
+		return shim.Error("size field must be a positive integer")
+	}
+	if len(marbleInput.Owner) == 0 {
+		return shim.Error("owner field must be a non-empty string")
+	}
+	if marbleInput.Price <= 0 {
+		return shim.Error("price field must be a positive integer")
+	}
+
+	// ==== Check if marble already exists ====
+	marbleAsBytes, err := stub.GetPrivateData("collectionMarbles", marbleInput.Name)
+	if err != nil {
+		return shim.Error("Failed to get marble: " + err.Error())
+	} else if marbleAsBytes != nil {
+		fmt.Println("This marble already exists: " + marbleInput.Name)
+		return shim.Error("This marble already exists: " + marbleInput.Name)
+	}
+
+	// ==== Create marble object, marshal to JSON, and save to state ====
+	marble := &marble{
+		ObjectType: "marble",
+		Name:       marbleInput.Name,
+		Color:      marbleInput.Color,
+		Size:       marbleInput.Size,
+		Owner:      marbleInput.Owner,
+	}
+	marbleJSONasBytes, err := json.Marshal(marble)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("new marble name " + marbleInput.Name)
+
+	// === Save marble to state ===
+	err = stub.PutPrivateData("collectionMarbles", marbleInput.Name, marbleJSONasBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	// ==== Create marble private details object with price, marshal to JSON, and save to state ====
+	marblePrivateDetails := &marblePrivateDetails{
+		ObjectType: "marblePrivateDetails",
+		Name:       marbleInput.Name,
+		Price:      marbleInput.Price,
+	}
+	marblePrivateDetailsBytes, err := json.Marshal(marblePrivateDetails)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	err = stub.PutPrivateData("collectionMarblePrivateDetails", marbleInput.Name, marblePrivateDetailsBytes)
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	// ==== Marble saved and indexed. Return success ====
+	fmt.Println("- end init marble")
+	return shim.Success(nil)
+}
+
+// ===============================================
+// readMarble - read a marble from chaincode state
+// ===============================================
+func (s *SmartContract) readMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var name, jsonResp string
+	var err error
+
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting name of the marble to query")
+	}
+
+	name = args[0]
+	valAsbytes, err := stub.GetPrivateData("collectionMarbles", name) //get the marble from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get state for " + name + "\"}"
+		return shim.Error(jsonResp)
+	} else if valAsbytes == nil {
+		jsonResp = "{\"Error\":\"Marble does not exist: " + name + "\"}"
+		return shim.Error(jsonResp)
+	}
+
+	return shim.Success(valAsbytes)
+}
+
+// ===============================================
+// readMarblereadMarblePrivateDetails - read a marble private details from chaincode state
+// ===============================================
+func (s *SmartContract) readMarblePrivateDetails(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	var name, jsonResp string
+	var err error
+
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting name of the marble to query")
+	}
+
+	name = args[0]
+	valAsbytes, err := stub.GetPrivateData("collectionMarblePrivateDetails", name) //get the marble private details from chaincode state
+	if err != nil {
+		jsonResp = "{\"Error\":\"Failed to get private details for " + name + ": " + err.Error() + "\"}"
+		return shim.Error(jsonResp)
+	} else if valAsbytes == nil {
+		jsonResp = "{\"Error\":\"Marble private details does not exist: " + name + "\"}"
+		return shim.Error(jsonResp)
+	}
+
+	return shim.Success(valAsbytes)
+}
+
+// ===========================================================
+// transfer a marble by setting a new owner name on the marble
+// ===========================================================
+func (s *SmartContract) transferMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	fmt.Println("- start transfer marble")
+
+	if len(args) != 2 {
+		return shim.Error("Incorrect number of arguments. Private marble data must be passed in transient map.")
+	}
+	Name := args[0]
+
+	marbleAsBytes, err := stub.GetPrivateData("collectionMarbles", Name)
+	if err != nil {
+		return shim.Error("Failed to get marble:" + err.Error())
+	} else if marbleAsBytes == nil {
+		return shim.Error("Marble does not exist: " + Name)
+	}
+
+	marbleToTransfer := marble{}
+	err = json.Unmarshal(marbleAsBytes, &marbleToTransfer) //unmarshal it aka JSON.parse()
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+	Owner := args[1]
+	marbleToTransfer.Owner = Owner //change the owner
+
+	marbleJSONasBytes, _ := json.Marshal(marbleToTransfer)
+	err = stub.PutPrivateData("collectionMarbles", marbleToTransfer.Name, marbleJSONasBytes) //rewrite the marble
+	if err != nil {
+		return shim.Error(err.Error())
+	}
+
+	fmt.Println("- end transferMarble (success)")
+	return shim.Success(nil)
 }
