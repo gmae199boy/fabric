@@ -38,11 +38,12 @@ func (s *SmartContract) Invoke(APIstub shim.ChaincodeStubInterface) sc.Response 
 
 	if function == "addPN" {
 		return s.addPN(APIstub, args)
-	} else if function == "addRating" {
-		return s.addRating(APIstub, args)
-	} else if function == "readRating" {
-		return s.readRating(APIstub, args)
 	} 
+	// else if function == "addRating" {
+	// 	return s.addRating(APIstub, args)
+	// } else if function == "readRating" {
+	// 	return s.readRating(APIstub, args)
+	// } 
 	return shim.Error("Invalid Smart Contract function name.")
 }
  
@@ -51,13 +52,18 @@ func (s *SmartContract) addPN(APIstub shim.ChaincodeStubInterface, args []string
 	if len(args)  != 8 {
 		return shim.Error("fail!")
 	}
+	iid,_ := strconv.Atoi(args[5])
+	iop, _ := strconv.Atoi(args[0])
+	var Info = PNInfo{
+		ID: iid, RegistTime: args[6], RegistNumber: args[7],
+	}
 	var PN = PNP{
-		ID: args[0],
+		ID: iop,
 		Name: args[1],
 		Birthday: args[2],
 		Address: args[3],
 		PhoneNumber: args[4],
-		PNInfomation:  PNInfo{ID: args[5], RegistTime: args[6], RegistNumber: args[7]}
+		PNInfomation: Info,
 	}
 	PNAsBytes, _ := json.Marshal(PN)
 	APIstub.PutState(args[0], PNAsBytes)
@@ -65,51 +71,51 @@ func (s *SmartContract) addPN(APIstub shim.ChaincodeStubInterface, args []string
 	return shim.Success(nil)
 }
 
-func (s *SmartContract) addRating(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
-	if len(args) != 3 {
-		return shim.Error("Incorrect number of arguments. Expecting 3")
-	}
-	// getState User 
-	userAsBytes, err := APIstub.GetState(args[0])
-	if err != nil{
-		jsonResp := "\"Error\":\"Failed to get state for "+ args[0]+"\"}"
-		return shim.Error(jsonResp)
-	} else if userAsBytes == nil{ // no State! error
-		jsonResp := "\"Error\":\"User does not exist: "+ args[0]+"\"}"
-		return shim.Error(jsonResp)
-	}
-	// state ok
-	user := UserRating{}
-	err = json.Unmarshal(userAsBytes, &user)
-	if err != nil {
-		return shim.Error(err.Error())
-	}
-	// create rate structure
-	newRate, _ := strconv.ParseFloat(args[2],64) 
-	var Rate = Rate{ProjectTitle: args[1], Score: newRate}
+// func (s *SmartContract) addRating(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+// 	if len(args) != 3 {
+// 		return shim.Error("Incorrect number of arguments. Expecting 3")
+// 	}
+// 	// getState User 
+// 	userAsBytes, err := APIstub.GetState(args[0])
+// 	if err != nil{
+// 		jsonResp := "\"Error\":\"Failed to get state for "+ args[0]+"\"}"
+// 		return shim.Error(jsonResp)
+// 	} else if userAsBytes == nil{ // no State! error
+// 		jsonResp := "\"Error\":\"User does not exist: "+ args[0]+"\"}"
+// 		return shim.Error(jsonResp)
+// 	}
+// 	// state ok
+// 	user := UserRating{}
+// 	err = json.Unmarshal(userAsBytes, &user)
+// 	if err != nil {
+// 		return shim.Error(err.Error())
+// 	}
+// 	// create rate structure
+// 	newRate, _ := strconv.ParseFloat(args[2],64) 
+// 	var Rate = Rate{ProjectTitle: args[1], Score: newRate}
 
-	rateCount := float64(len(user.Rates))
+// 	rateCount := float64(len(user.Rates))
 
-	user.Rates=append(user.Rates,Rate)
+// 	user.Rates=append(user.Rates,Rate)
 
-	user.Average = (rateCount*user.Average+newRate)/(rateCount+1)
-	// update to User World state
-	userAsBytes, err = json.Marshal(user);
+// 	user.Average = (rateCount*user.Average+newRate)/(rateCount+1)
+// 	// update to User World state
+// 	userAsBytes, err = json.Marshal(user);
 
-	APIstub.PutState(args[0], userAsBytes)
+// 	APIstub.PutState(args[0], userAsBytes)
 
-	return shim.Success([]byte("rating is updated"))
-}
+// 	return shim.Success([]byte("rating is updated"))
+// }
 
-func (s *SmartContract) readRating(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
+// func (s *SmartContract) readRating(APIstub shim.ChaincodeStubInterface, args []string) sc.Response {
 
-	if len(args) != 1 {
-		return shim.Error("Incorrect number of arguments. Expecting 1")
-	}
+// 	if len(args) != 1 {
+// 		return shim.Error("Incorrect number of arguments. Expecting 1")
+// 	}
 
-	UserAsBytes, _ := APIstub.GetState(args[0])
-	return shim.Success(UserAsBytes)
-}
+// 	UserAsBytes, _ := APIstub.GetState(args[0])
+// 	return shim.Success(UserAsBytes)
+// }
 
 func main() {
 

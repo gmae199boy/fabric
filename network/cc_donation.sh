@@ -5,12 +5,12 @@
 set -ev
 
 #chaincode install
-docker exec cli peer chaincode install -n donation -p /home/bstudent/dev/donation/contract/donation/donation
+docker exec cli peer chaincode install -n donation -v 2.0 -p github.com/donation
 #chaincode instatiate
-docker exec cli peer chaincode instantiate -n donation -C mychannel -c '{"Args":[]}' -P 'OR ("Org1MSP.member", "Org2MSP.member","Org3MSP.member")'
+docker exec cli peer chaincode instantiate -n donation -v 2.0 -C mychannel -c '{"Args":[]}' -P 'OR ("Org1MSP.member", "Org2MSP.member","Org3MSP.member")'
 sleep 5
 #chaincode invoke user1
-docker exec cli peer chaincode invoke -n donation -C mychannel -c '{"Args":["addPH","a","kim","19910503","seoul","01022222222","1","1212","asfas"]}'
+docker exec cli peer chaincode invoke -n donation -C mychannel -c '{"Args":["addPN","a","kim","19910503","seoul","01022222222","1","1212","asfas"]}'
 sleep 5
 #chaincode query user1
 #docker exec cli peer chaincode query -n donation -C mychannel -c '{"Args":["readRating","user1"]}'
