@@ -41,19 +41,12 @@ async function cc_call(fn_name, args){
     const gateway = new Gateway();
     await gateway.connect(ccp, { wallet, identity: 'user1', discovery: { enabled: false } });
     const network = await gateway.getNetwork('mychannel');
-    const contract = network.getContract('teamate');
+    const contract = network.getContract('donation');
 
     var result;
     
-    if(fn_name == 'addUser')
-        result = await contract.submitTransaction('addUser', args);
-    else if( fn_name == 'addRating')
-    {
-        e=args[0];
-        p=args[1];
-        s=args[2];
-        result = await contract.submitTransaction('addRating', e, p, s);
-    }
+    if(fn_name == 'addPN')
+        result = await contract.submitTransaction('addPN', args);
     else if(fn_name == 'readRating')
         result = await contract.evaluateTransaction('readRating', args);
     else
@@ -90,9 +83,9 @@ app.post('/score', async(req, res)=>{
 })
 
 // find mate
-app.post('/mate/:email', async (req,res)=>{
-    const email = req.body.email;
-    console.log("email: " + req.body.email);
+app.post('/donation/:name', async (req,res)=>{
+    const PNname = req.body.name;
+    console.log("name: " + req.body.name);
     const walletPath = path.join(process.cwd(), 'wallet');
     const wallet = new FileSystemWallet(walletPath);
     console.log(`Wallet path: ${walletPath}`);

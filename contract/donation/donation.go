@@ -44,6 +44,12 @@ type marblePrivateDetails struct {
 	Price      int    `json:"price"`
 }
 
+// Init initializes chaincode
+// ===========================
+func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	return shim.Success(nil)
+}
+
 // Invoke - Our entry point for Invocations
 // ========================================
 func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
@@ -107,12 +113,6 @@ func (s *SmartContract) readPN(stub shim.ChaincodeStubInterface, args []string) 
 	PNAsBytes, _ := stub.GetState(args[0])
 
 	return shim.Success(PNAsBytes)
-}
-
-// Init initializes chaincode
-// ===========================
-func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
-	return shim.Success(nil)
 }
 
 // ============================================================
