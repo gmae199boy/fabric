@@ -15,8 +15,8 @@ const ccp = JSON.parse(ccpJSON);
 const PORT = 8080;
 const HOST = '0.0.0.0';
 
-// use static file
-app.use(express.static(path.join(__dirname, 'views')));
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 
 // configure app to use body-parser
 app.use(bodyParser.json());
@@ -24,11 +24,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // main page routing
 app.get('/', (req, res)=>{
-    res.sendFile(__dirname + '/index.html');
+    res.render('index.ejs');
 })
 
 async function cc_call(fn_name, args){
-    
     const walletPath = path.join(process.cwd(), 'wallet');
     const wallet = new FileSystemWallet(walletPath);
 
@@ -55,15 +54,29 @@ async function cc_call(fn_name, args){
     return result;
 }
 
-// create mate
-app.post('/mate', async(req, res)=>{
-    const email = req.body.email;
-    console.log("add mate email: " + email);
+// create PN
+app.post('/create/pn', async(req, res)=>{
+    const name = req.body.name;
+    const birthday = req.body.birthday;
+    const address = req.body.address;
+    const phoneNumber = req.body.phoneNumber;
+    const registTime = req.body.registTime;
+    const registNumber = req.body.registNumber;
+    console.log(registNumber);
+    var PNInfo = {
+        "name": name,
+        "birthday": birthday,
+        "address": address,
+        "phoneNumber": phoneNumber,
+        "registTime": registTime,
+        "registNumber": registNumber,
+    }
+    console.log("add PN: " + PNInfo);
 
-    result = cc_call('addUser', email)
+    result = cc_call('addPN', JSON.stringify(PNInfo));
 
     const myobj = {result: "success"}
-    res.status(200).json(myobj) 
+    res.status(200).json(myobj)
 })
 
 // add score

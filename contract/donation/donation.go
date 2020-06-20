@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
+	// "strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
@@ -13,11 +13,21 @@ import (
 type SmartContract struct {
 }
 
+type PNJson struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Birthday     string `json:"birthday"`
+	Address      string `json:"address"`
+	PhoneNumber  string `json:"phoneNumber"`
+	RegistTime   string `json:"registtime"`
+	RegistNumber string `json:"registnumber"`
+}
+
 // PNInfo PN infomations
 type PNInfo struct {
 	ID           int    `json:"id"`
 	RegistTime   string `json:"registtime"`
-	RegistNumber string `json:"registnumbder"`
+	RegistNumber string `json:"registnumber"`
 }
 
 // PNP PN person
@@ -82,24 +92,48 @@ func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 
 func (s *SmartContract) addPN(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-	if len(args) != 8 {
+	if len(args) == 0 {
 		return shim.Error("fail!")
 	}
-	iid, _ := strconv.Atoi(args[5])
-	iop, _ := strconv.Atoi(args[0])
+	
+	var PNFile PNJson
+	json.Unmarshal([]byte(args[0]), &PNFile)
+	// iid, _ := strconv.Atoi(PNFile.)
+	// iop, _ := strconv.Atoi(args[0])
+	// var Info = PNInfo{
+	// 	ID: 1, RegistTime: args[6], RegistNumber: args[7],
+	// }
+	// var PN = PNP{
+	// 	ID:           1,
+	// 	Name:         args[1],
+	// 	Birthday:     args[2],
+	// 	Address:      args[3],
+	// 	PhoneNumber:  args[4],
+	// 	PNInfomation: Info,
+	// }
 	var Info = PNInfo{
-		ID: iid, RegistTime: args[6], RegistNumber: args[7],
+		ID: 1,
+		RegistTime: PNFile.RegistTime,
+		RegistNumber: PNFile.RegistNumber,
 	}
-	var PN = PNP{
-		ID:           iop,
-		Name:         args[1],
-		Birthday:     args[2],
-		Address:      args[3],
-		PhoneNumber:  args[4],
+	var PN = &PNP{
+		ID: 1,
+		Name: PNFile.Name,
+		Birthday: PNFile.Birthday,
+		Address: PNFile.Address,
+		PhoneNumber: PNFile.PhoneNumber,
 		PNInfomation: Info,
 	}
+	// var PN = &PNP{
+	// 	ID: 1,
+	// 	Name: args.name,
+	// 	Birthday: args.birthday,
+	// 	Address: args.address,
+	// 	PhoneNumber: args.phoneNumber,
+	// 	PNInfomation: args.pninfo,
+	// }
 	PNAsBytes, _ := json.Marshal(PN)
-	stub.PutState(args[1], PNAsBytes)
+	stub.PutState(PNFile.Name, PNAsBytes)
 
 	return shim.Success(nil)
 }
