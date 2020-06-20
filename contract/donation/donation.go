@@ -30,6 +30,20 @@ type PNP struct {
 	PNInfomation PNInfo `json:"pninfo"`
 }
 
+type marble struct {
+	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
+	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
+	Color      string `json:"color"`
+	Size       int    `json:"size"`
+	Owner      string `json:"owner"`
+}
+
+type marblePrivateDetails struct {
+	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
+	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
+	Price      int    `json:"price"`
+}
+
 // Invoke - Our entry point for Invocations
 // ========================================
 func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
@@ -39,6 +53,8 @@ func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	switch function {
 	case "addPN":
 		return s.addPN(stub, args)
+	case "readPN":
+
 	case "initMarble":
 		//create a new marble
 		return s.initMarble(stub, args)
@@ -82,28 +98,14 @@ func (s *SmartContract) addPN(stub shim.ChaincodeStubInterface, args []string) p
 	return shim.Success(nil)
 }
 
-type marble struct {
-	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
-	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
-	Color      string `json:"color"`
-	Size       int    `json:"size"`
-	Owner      string `json:"owner"`
-}
+func (s *SmartContract) readPN(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
-type marblePrivateDetails struct {
-	ObjectType string `json:"docType"` //docType is used to distinguish the various types of objects in state database
-	Name       string `json:"name"`    //the fieldtags are needed to keep case from bouncing around
-	Price      int    `json:"price"`
-}
-
-// ===================================================================================
-// Main
-// ===================================================================================
-func main() {
-	err := shim.Start(new(SmartContract))
-	if err != nil {
-		fmt.Printf("Error starting Simple chaincode: %s", err)
+	if len(args) != 1 {
+		return shim.Error("Incorrect number of arguments. Expecting 1")
 	}
+
+	PNAsBytes, _ := stub.GetState(args[0])
+	return shim.Success(PNAsBytes)
 }
 
 // Init initializes chaincode
@@ -294,4 +296,14 @@ func (s *SmartContract) transferMarble(stub shim.ChaincodeStubInterface, args []
 
 	fmt.Println("- end transferMarble (success)")
 	return shim.Success(nil)
+}
+
+// ===================================================================================
+// Main
+// ===================================================================================
+func main() {
+	err := shim.Start(new(SmartContract))
+	if err != nil {
+		fmt.Printf("Error starting Simple chaincode: %s", err)
+	}
 }
