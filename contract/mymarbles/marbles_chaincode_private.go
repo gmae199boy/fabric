@@ -3,13 +3,60 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
 	pb "github.com/hyperledger/fabric/protos/peer"
 )
 
-// SimpleChaincode example simple Chaincode implementation
-type SimpleChaincode struct {
+// SmartContract example simple Chaincode implementation
+type SmartContract struct {
+}
+
+// PNInfo PN infomations
+type PNInfo struct {
+	ID           int    `json:"id"`
+	RegistTime   string `json:"registtime"`
+	RegistNumber string `json:"registnumbder"`
+}
+
+// PNP PN person
+type PNP struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	Birthday     string `json:"birthday"`
+	Address      string `json:"address"`
+	PhoneNumber  string `json:"phoneNumber"`
+	PNInfomation PNInfo `json:"pninfo"`
+}
+
+// Init initialize
+func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	return shim.Success(nil)
+}
+
+func (s *SmartContract) addPN(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+
+	if len(args) != 8 {
+		return shim.Error("fail!")
+	}
+	iid, _ := strconv.Atoi(args[5])
+	iop, _ := strconv.Atoi(args[0])
+	var Info = PNInfo{
+		ID: iid, RegistTime: args[6], RegistNumber: args[7],
+	}
+	var PN = PNP{
+		ID:           iop,
+		Name:         args[1],
+		Birthday:     args[2],
+		Address:      args[3],
+		PhoneNumber:  args[4],
+		PNInfomation: Info,
+	}
+	PNAsBytes, _ := json.Marshal(PN)
+	stub.PutState(args[0], PNAsBytes)
+
+	return shim.Success(nil)
 }
 
 type marble struct {
@@ -30,7 +77,7 @@ type marblePrivateDetails struct {
 // Main
 // ===================================================================================
 func main() {
-	err := shim.Start(new(SimpleChaincode))
+	err := shim.Start(new(SmartContract))
 	if err != nil {
 		fmt.Printf("Error starting Simple chaincode: %s", err)
 	}
@@ -38,29 +85,31 @@ func main() {
 
 // Init initializes chaincode
 // ===========================
-func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+func (s *SmartContract) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	return shim.Success(nil)
 }
 
 // Invoke - Our entry point for Invocations
 // ========================================
-func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	function, args := stub.GetFunctionAndParameters()
 	fmt.Println("invoke is running " + function)
 	// Handle different functions
 	switch function {
+	case "addPN":
+		return s.addPN(stub, args)
 	case "initMarble":
 		//create a new marble
-		return t.initMarble(stub, args)
+		return s.initMarble(stub, args)
 	case "readMarble":
 		//read a marble
-		return t.readMarble(stub, args)
+		return s.readMarble(stub, args)
 	case "readMarblePrivateDetails":
 		//read a marble private details
-		return t.readMarblePrivateDetails(stub, args)
+		return s.readMarblePrivateDetails(stub, args)
 	case "transferMarble":
 		//change owner of a specific marble
-		return t.transferMarble(stub, args)
+		return s.transferMarble(stub, args)
 	default:
 		//error
 		fmt.Println("invoke did not find func: " + function)
@@ -71,7 +120,7 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 // ============================================================
 // initMarble - create a new marble, store into chaincode state
 // ============================================================
-func (t *SimpleChaincode) initMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (s *SmartContract) initMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var err error
 
 	type marbleTransientInput struct {
@@ -170,7 +219,7 @@ func (t *SimpleChaincode) initMarble(stub shim.ChaincodeStubInterface, args []st
 // ===============================================
 // readMarble - read a marble from chaincode state
 // ===============================================
-func (t *SimpleChaincode) readMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (s *SmartContract) readMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var name, jsonResp string
 	var err error
 
@@ -194,7 +243,7 @@ func (t *SimpleChaincode) readMarble(stub shim.ChaincodeStubInterface, args []st
 // ===============================================
 // readMarblereadMarblePrivateDetails - read a marble private details from chaincode state
 // ===============================================
-func (t *SimpleChaincode) readMarblePrivateDetails(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (s *SmartContract) readMarblePrivateDetails(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 	var name, jsonResp string
 	var err error
 
@@ -218,7 +267,7 @@ func (t *SimpleChaincode) readMarblePrivateDetails(stub shim.ChaincodeStubInterf
 // ===========================================================
 // transfer a marble by setting a new owner name on the marble
 // ===========================================================
-func (t *SimpleChaincode) transferMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+func (s *SmartContract) transferMarble(stub shim.ChaincodeStubInterface, args []string) pb.Response {
 
 	fmt.Println("- start transfer marble")
 
