@@ -54,7 +54,7 @@ func (s *SmartContract) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	case "addPN":
 		return s.addPN(stub, args)
 	case "readPN":
-
+		return s.readPN(stub, args)
 	case "initMarble":
 		//create a new marble
 		return s.initMarble(stub, args)

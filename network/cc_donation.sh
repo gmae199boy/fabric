@@ -13,7 +13,7 @@ sleep 5
 docker exec cli peer chaincode invoke -n donation -C mychannel -c '{"Args":["addPN","a","kim","19910503","seoul","01022222222","1","1212","asfas"]}'
 sleep 5
 #chaincode query user1
-#docker exec cli peer chaincode query -n donation -C mychannel -c '{"Args":["readRating","user1"]}'
+docker exec cli peer chaincode query -n donation -C mychannel -c '{"Args":["readPN","kim"]}'
 
 #chaincode invoke add rating
 #docker exec cli peer chaincode invoke -n donation -C mychannel -c '{"Args":["addRating","user1","p1","5.0"]}'
