@@ -2,7 +2,6 @@
 
 ## Smart Contract
 ./contract/donation/donation.go -> 디앱에서 제공하는 기본적인 스마트 컨트랙트가 담겨있음  
-./contract/donation/mymarbles   -> 프라이빗 데이터를 담는곳
 
 - 각각은 다른 예제지만 어차피 "github.com/hyperledger/fabric/core/chaincode/shim" 이놈이 모든 API를 컨트롤 하기 때문에 
 marbles 예제를 그대로 가져와도 동작한다.  
@@ -29,6 +28,10 @@ cd /donation/network
 ./generate.sh
 ./start.sh
 ./cc_donation.sh
+
+or 
+
+./po.sh
 ```
 
 네트워크 삭제
@@ -40,6 +43,7 @@ cd /donation/network
 ## Start WebServer
 ```bash
 cd /donation/prototype
+rm -rf wallet
 node enrollAdmin
 node registerUser
 node server
