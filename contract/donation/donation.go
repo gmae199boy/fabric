@@ -105,7 +105,7 @@ func (s *SmartContract) readPN(stub shim.ChaincodeStubInterface, args []string) 
 	}
 
 	PNAsBytes, _ := stub.GetState(args[0])
-	fmt.Println(PNAsBytes)
+
 	return shim.Success(PNAsBytes)
 }
 
