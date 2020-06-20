@@ -20,6 +20,9 @@ marbles 예제를 그대로 가져와도 동작한다.
 이것이 있는데, 이중에 - ./../contract/:/opt/gopath/src/github.com/ 요놈이 ./contract 파일 안에있는 소스들을 도커 컨테이너와 공유해서  
 체인 코드를 설치할 때 설치가 되는 것이다.
 
+* 한줄 요약 -> ./network/docker-compose.yml 에 자기가 체인코드를 설치할 파일 주소를 적고 그 파일 안에  
+자기가 설치하고 싶은 체인 코드 소스파일들을 넣으면 된다 ** 
+
 ## Start Hyperledger Fabric
 ```bash
 cd /donation/network
