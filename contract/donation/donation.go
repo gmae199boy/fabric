@@ -93,7 +93,7 @@ func (s *SmartContract) addPN(stub shim.ChaincodeStubInterface, args []string) p
 		PNInfomation: Info,
 	}
 	PNAsBytes, _ := json.Marshal(PN)
-	stub.PutState(args[0], PNAsBytes)
+	stub.PutState(args[1], PNAsBytes)
 
 	return shim.Success(nil)
 }
